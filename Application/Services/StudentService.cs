@@ -1,4 +1,5 @@
 using Application.Common.interfaces;
+using Application.Common.interfaces.Enum;
 using Application.Common.interfaces.Repositoties;
 using Application.Consumer;
 using Application.Requests;
@@ -18,9 +19,22 @@ public class StudentService : IStudentService
         _studentConsumer = new StudentConsumer();
     }
 
-    public Task<StudentResponseModel> Get(string id, CancellationToken cancellationToken)
+    public async Task<StudentResponseModel> Get(string id, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var respons = await _studentReposiroty.FindAsync(id, new Student(), cancellationToken);
+
+        return new StudentResponseModel()
+        {
+            Id = respons.Id,
+            GuidId = respons.GuidId,
+            FirstName = respons.FirstName,
+            LastName = respons.LastName,
+            Address = respons.Address,
+            Course = respons.Course,
+            Email = respons.Email,
+            Group = respons.Group,
+            Birthday = respons.Birthday,
+        };
     }
 
     public Task<IEnumerable<StudentResponseModel>> GetAll(int pageSize, int pageNumber,
@@ -41,13 +55,12 @@ public class StudentService : IStudentService
             Email = request.Email,
             Group = request.Group,
             Birthday = request.Birthday,
-            
         };
         var result = await _studentReposiroty.AddAsync(student, cancellationToken);
 
-        if (result == "successfull")
+        if (result == "successful")
         {
-            _studentConsumer.SendToRabbitMq(student);
+            _studentConsumer.SendToRabbitMq(student, EntityChangeEventType.Insert);
         }
         else
         {
@@ -57,13 +70,37 @@ public class StudentService : IStudentService
         return result;
     }
 
-    public Task<string> Update(StudentRequestModel request, string id, CancellationToken cancellationToken)
+    public async Task<string> Update(StudentRequestModel request, string id, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var respons = await _studentReposiroty.FindAsync(id, new Student(), cancellationToken);
+
+        respons.FirstName = request.FirstName;
+        respons.LastName = request.LastName;
+        respons.Address = request.Address;
+        respons.Course = request.Course;
+        respons.Email = request.Email;
+        respons.Group = request.Group;
+        respons.Birthday = request.Birthday;
+
+        var result = await _studentReposiroty.Update(respons, id, cancellationToken);
+
+        if (result == "successful")
+            _studentConsumer.SendToRabbitMq(respons, EntityChangeEventType.Update);
+        else
+            throw new Exception();
+
+        return result;
     }
 
-    public bool Delete(ulong id, CancellationToken cancellationTok)
+    public async Task<string> Delete(string id, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var result = _studentReposiroty.Delete(id);
+
+        if (result == "successful")
+            _studentConsumer.SendToRabbitMq(new Student { Id = id }, EntityChangeEventType.Delete);
+        else
+            throw new Exception();
+
+        return result;
     }
 }

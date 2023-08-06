@@ -1,5 +1,7 @@
 using Application.Common.interfaces.Repositoties;
 using Infrastructure.DataBase;
+using MongoDB.Driver;
+using MongoDB.Bson;
 
 namespace Infrastructure.Repository;
 
@@ -12,83 +14,56 @@ public class Repository<TEntity> : IRepository<TEntity>
         _efContext = new();
     }
 
-    public IQueryable<TEntity> GetAll(int pageSize, int pageNumber, CancellationToken cancellation)
+    public async Task<TEntity> FindAsync(string id, TEntity entity, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
-    }
+        var tableName = entity?.GetType().Name;
+        var entities = _efContext.MongoDatabase().GetCollection<TEntity>(tableName);
 
-    public Task<IQueryable<TEntity>> GetAllAsync(int pageSize, int pageNumber, CancellationToken cancellation)
-    {
-        throw new NotImplementedException();
-    }
+        var filter = Builders<TEntity>.Filter.Eq("_id", new ObjectId(id));
+        var result = await entities.Find(filter).FirstOrDefaultAsync();
 
-    public IQueryable<TEntity> Set()
-    {
-        throw new NotImplementedException();
-    }
-
-    public TEntity Find(ulong id)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<TEntity> FindAsync(ulong id, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void Add(TEntity entity)
-    {
-        throw new NotImplementedException();
+        return result;
     }
 
     public async Task<string> AddAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
         try
         {
-            var tableName = entity?.GetType().Name + "s";
+            var tableName = entity?.GetType().Name;
             var entities = _efContext.MongoDatabase().GetCollection<TEntity>(tableName);
             await entities.InsertOneAsync(entity, cancellationToken: cancellationToken);
-            return "successfull";
+            return "successful";
         }
         catch (Exception e)
         {
-           throw new Exception();
+            throw new Exception();
         }
     }
 
-    public void Add(IEnumerable<TEntity> entities)
+    public string Delete(string entity)
     {
-        throw new NotImplementedException();
+        return "successful";
     }
 
-    public Task AddAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+    public async Task<string> Update(TEntity entity, string id, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
-    }
+        var tableName = entity?.GetType().Name;
+        var entities = _efContext.MongoDatabase().GetCollection<TEntity>(tableName);
+        var filter = Builders<TEntity>.Filter.Eq("_id", new ObjectId(id));
+        var result = await entities.Find(filter).FirstOrDefaultAsync();
 
-    public void Delete(TEntity entity)
-    {
-        throw new NotImplementedException();
-    }
+        if (result == null)
+            throw new NullReferenceException();
+        try
+        {
+            await entities.ReplaceOneAsync(filter, entity);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
 
-    public void Update(TEntity entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void Update(IEnumerable<TEntity> entities)
-    {
-        throw new NotImplementedException();
-    }
-
-    public int SaveChanges()
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
+        return "successful";
     }
 }

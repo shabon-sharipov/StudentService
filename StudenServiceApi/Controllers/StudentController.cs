@@ -22,4 +22,25 @@ public class StudentController : ControllerBase
         var respons = await _studentService.Create(studentRequestModel, CancellationToken.None);
         return Ok(respons);
     }
+
+    [HttpGet]
+    public async Task<ActionResult<StudentResponseModel>> GetById(string id)
+    {
+        var respose = await _studentService.Get(id, CancellationToken.None);
+        return Ok(respose);
+    }
+
+    [HttpPut]
+    public async Task<ActionResult<string>> Put(string id, StudentRequestModel requestModel, CancellationToken cancellationToken)
+    {
+        var respons = await _studentService.Update(requestModel, id, cancellationToken);
+        return Ok(respons);
+    }
+
+    [HttpDelete]
+    public async Task<ActionResult<string>> Delete(string id, CancellationToken cancellationToken)
+    {
+        var result = await _studentService.Delete(id, cancellationToken);
+        return Ok(result);
+    }
 }

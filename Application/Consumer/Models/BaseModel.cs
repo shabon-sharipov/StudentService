@@ -4,7 +4,7 @@ namespace Application.Consumer.Models;
 
 public class BaseModel
 {
-    public string GuidId { get; set; }
+    public string Id { get; set; }
     public string Type { get; set; }
     public EntityChangeEventType EntityChangeEventType { get; set; }
 }
