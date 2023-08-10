@@ -4,75 +4,48 @@ using Application.Common.interfaces.Repositoties;
 using Application.Consumer;
 using Application.Requests;
 using Application.Responses;
+using AutoMapper;
 using Domain.Models;
 
 namespace Application.Services;
 
 public class StudentService : IStudentService
 {
+    private IMapper _mapper;
     private IRepository<Student> _studentReposiroty;
     private StudentConsumer _studentConsumer;
 
-    public StudentService(IRepository<Student> studentReposiroty)
+    public StudentService(IRepository<Student> studentReposiroty, IMapper mapper)
     {
         _studentReposiroty = studentReposiroty;
+        _mapper = mapper;
         _studentConsumer = new StudentConsumer();
     }
 
     public async Task<StudentResponseModel> Get(string id, CancellationToken cancellationToken)
     {
-        var respons = await _studentReposiroty.FindAsync(id, new Student(), cancellationToken);
+       var respons = await _studentReposiroty.FindAsync(id, nameof(Student), cancellationToken);
 
-        return new StudentResponseModel()
-        {
-            Id = respons.Id,
-            GuidId = respons.GuidId,
-            FirstName = respons.FirstName,
-            LastName = respons.LastName,
-            Address = respons.Address,
-            Course = respons.Course,
-            Email = respons.Email,
-            Group = respons.Group,
-            Birthday = respons.Birthday,
-        };
-    }
-
-    public Task<IEnumerable<StudentResponseModel>> GetAll(int pageSize, int pageNumber,
-        CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
+        return _mapper.Map<StudentResponseModel>(respons);
     }
 
     public async Task<string> Create(StudentRequestModel request, CancellationToken cancellationToken)
     {
-        var student = new Student()
-        {
-            GuidId = Guid.NewGuid().ToString(),
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            Address = request.Address,
-            Course = request.Course,
-            Email = request.Email,
-            Group = request.Group,
-            Birthday = request.Birthday,
-        };
+        var student = _mapper.Map<Student>(request);
+
         var result = await _studentReposiroty.AddAsync(student, cancellationToken);
 
         if (result == "successful")
-        {
             _studentConsumer.SendToRabbitMq(student, EntityChangeEventType.Insert);
-        }
         else
-        {
             throw new Exception();
-        }
 
         return result;
     }
 
     public async Task<string> Update(StudentRequestModel request, string id, CancellationToken cancellationToken)
     {
-        var respons = await _studentReposiroty.FindAsync(id, new Student(), cancellationToken);
+        var respons = await _studentReposiroty.FindAsync(id, nameof(Student), cancellationToken);
 
         respons.FirstName = request.FirstName;
         respons.LastName = request.LastName;
@@ -81,6 +54,7 @@ public class StudentService : IStudentService
         respons.Email = request.Email;
         respons.Group = request.Group;
         respons.Birthday = request.Birthday;
+    
 
         var result = await _studentReposiroty.Update(respons, id, cancellationToken);
 
@@ -94,7 +68,7 @@ public class StudentService : IStudentService
 
     public async Task<string> Delete(string id, CancellationToken cancellationToken)
     {
-        var result = _studentReposiroty.Delete(id);
+        var result =await _studentReposiroty.Delete(id,nameof(Student));
 
         if (result == "successful")
             _studentConsumer.SendToRabbitMq(new Student { Id = id }, EntityChangeEventType.Delete);

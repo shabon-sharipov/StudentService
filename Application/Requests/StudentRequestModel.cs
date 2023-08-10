@@ -1,3 +1,5 @@
+using Domain.Models;
+
 namespace Application.Requests;
 
 public class StudentRequestModel
