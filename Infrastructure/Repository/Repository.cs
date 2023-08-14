@@ -42,7 +42,7 @@ public class Repository<TEntity> : IRepository<TEntity>
         }
         catch (Exception e)
         {
-            throw new Exception();
+            throw new Exception("Something wrong, in the add data. StudentService");
         }
     }
 

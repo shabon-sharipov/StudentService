@@ -19,7 +19,7 @@ public class StudentConsumer
         _helperClass = new HelperClass();
     }
 
-    public void SendToRabbitMq(Student student,EntityChangeEventType entityChangeEventType)
+    public void SendToRabbitMq(Student student, EntityChangeEventType entityChangeEventType)
     {
         var factory = _helperClass.ConnectionFactory();
         var connection = factory.CreateConnection();
@@ -31,9 +31,17 @@ public class StudentConsumer
 
         var serislixe = JsonSerializer.Serialize(new BaseModel
             { Id = student.Id, Type = nameof(Student), EntityChangeEventType = entityChangeEventType });
-        
+
         var message = Encoding.UTF8.GetBytes(serislixe);
-        channel.BasicPublish(Constant.ExchangeName, Constant.RoutinKey, null, message);
+        try
+        {
+            channel.BasicPublish(Constant.ExchangeName, Constant.RoutinKey, null, message);
+        }
+        catch (Exception e)
+        {
+            throw new Exception($"When Publish data to RabbitMq: {e.Message}");
+        }
+
         channel.Close();
         connection.Close();
     }

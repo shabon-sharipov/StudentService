@@ -10,17 +10,27 @@ namespace StudenServiceApi.Controllers;
 public class StudentController : ControllerBase
 {
     private readonly IStudentService _studentService;
+    private readonly ILogger<StudentController> _logger;
 
-    public StudentController(IStudentService studentService)
+    public StudentController(IStudentService studentService, ILogger<StudentController> logger)
     {
         _studentService = studentService;
+        _logger = logger;
     }
 
     [HttpPost]
     public async Task<ActionResult<string>> Post([FromBody] StudentRequestModel studentRequestModel)
     {
-        var respons = await _studentService.Create(studentRequestModel, CancellationToken.None);
-        return Ok(respons);
+        try
+        {
+            var respons = await _studentService.Create(studentRequestModel, CancellationToken.None);
+            return Ok(respons);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, ex.Message);
+            throw ex;
+        }
     }
 
     [HttpGet]
@@ -31,7 +41,8 @@ public class StudentController : ControllerBase
     }
 
     [HttpPut]
-    public async Task<ActionResult<string>> Put(string id, StudentRequestModel requestModel, CancellationToken cancellationToken)
+    public async Task<ActionResult<string>> Put(string id, StudentRequestModel requestModel,
+        CancellationToken cancellationToken)
     {
         var respons = await _studentService.Update(requestModel, id, cancellationToken);
         return Ok(respons);

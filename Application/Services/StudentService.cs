@@ -24,23 +24,35 @@ public class StudentService : IStudentService
 
     public async Task<StudentResponseModel> Get(string id, CancellationToken cancellationToken)
     {
-       var respons = await _studentReposiroty.FindAsync(id, nameof(Student), cancellationToken);
+        try
+        {
+            var respons = await _studentReposiroty.FindAsync(id, nameof(Student), cancellationToken);
 
-        return _mapper.Map<StudentResponseModel>(respons);
+            return _mapper.Map<StudentResponseModel>(respons);
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
     }
 
     public async Task<string> Create(StudentRequestModel request, CancellationToken cancellationToken)
     {
-        var student = _mapper.Map<Student>(request);
+        try
+        {
+            var student = _mapper.Map<Student>(request);
 
-        var result = await _studentReposiroty.AddAsync(student, cancellationToken);
+            var result = await _studentReposiroty.AddAsync(student, cancellationToken);
 
-        if (result == "successful")
-            _studentConsumer.SendToRabbitMq(student, EntityChangeEventType.Insert);
-        else
-            throw new Exception();
+            if (result == "successful")
+                _studentConsumer.SendToRabbitMq(student, EntityChangeEventType.Insert);
 
-        return result;
+            return result;
+        }
+        catch (Exception e)
+        {
+            throw e;
+        }
     }
 
     public async Task<string> Update(StudentRequestModel request, string id, CancellationToken cancellationToken)
@@ -54,27 +66,37 @@ public class StudentService : IStudentService
         respons.Email = request.Email;
         respons.Group = request.Group;
         respons.Birthday = request.Birthday;
-    
 
-        var result = await _studentReposiroty.Update(respons, id, cancellationToken);
+        try
+        {
+            var result = await _studentReposiroty.Update(respons, id, cancellationToken);
 
-        if (result == "successful")
-            _studentConsumer.SendToRabbitMq(respons, EntityChangeEventType.Update);
-        else
-            throw new Exception();
-
-        return result;
+            if (result == "successful")
+                _studentConsumer.SendToRabbitMq(respons, EntityChangeEventType.Update);
+            return result;
+        }
+        catch (Exception e)
+        {
+            throw e;
+        }
     }
 
     public async Task<string> Delete(string id, CancellationToken cancellationToken)
     {
-        var result =await _studentReposiroty.Delete(id,nameof(Student));
+        try
+        {
+            var result = await _studentReposiroty.Delete(id, nameof(Student));
 
-        if (result == "successful")
-            _studentConsumer.SendToRabbitMq(new Student { Id = id }, EntityChangeEventType.Delete);
-        else
-            throw new Exception();
+            if (result == "successful")
+                _studentConsumer.SendToRabbitMq(new Student { Id = id }, EntityChangeEventType.Delete);
+            else
+                throw new Exception();
 
-        return result;
+            return result;
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
     }
 }
