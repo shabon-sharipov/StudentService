@@ -1,17 +1,20 @@
-using Application.Common.interfaces.Repositoties;
+using Application.Repositories;
 using Infrastructure.DataBase;
-using MongoDB.Driver;
+using Infrastructure.Options;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace Infrastructure.Repository;
 
 public class Repository<TEntity> : IRepository<TEntity>
 {
-    private EFContext _efContext;
+    private DatabaseContext _efContext;
 
-    public Repository()
+    public Repository(IConfiguration configuration)
     {
-        _efContext = new();
+        _efContext = new(configuration);
     }
 
     public async Task<TEntity> FindAsync(string id, string entityName, CancellationToken cancellationToken = default)
@@ -52,7 +55,7 @@ public class Repository<TEntity> : IRepository<TEntity>
         {
             var entities = _efContext.MongoDatabase().GetCollection<TEntity>(entityName);
             var filter = Builders<TEntity>.Filter.Eq("_id", new ObjectId(id));
-        
+
             // Find the document to be deleted
             var document = await entities.FindOneAndDeleteAsync(filter);
 

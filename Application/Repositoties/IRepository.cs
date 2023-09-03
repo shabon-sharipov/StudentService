@@ -1,4 +1,4 @@
-namespace Application.Common.interfaces.Repositoties;
+namespace Application.Repositories;
 
 public interface IRepository<TEntity>
 {
@@ -6,7 +6,7 @@ public interface IRepository<TEntity>
 
     Task<string> AddAsync(TEntity entity, CancellationToken cancellationToken = default);
 
-    Task<string> Delete(string id,string entityName);
+    Task<string> Delete(string id, string entityName);
 
     Task<string> Update(TEntity entity, string id, CancellationToken cancellationToken);
 }

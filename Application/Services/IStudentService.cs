@@ -1,7 +1,7 @@
 using Application.Requests;
 using Application.Responses;
 
-namespace Application.Common.interfaces;
+namespace Application.Services;
 
 public interface IStudentService
 {

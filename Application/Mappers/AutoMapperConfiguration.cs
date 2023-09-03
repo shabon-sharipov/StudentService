@@ -1,7 +1,6 @@
 using Application.Requests;
 using Application.Responses;
 using AutoMapper;
-using Domain.Models;
 
 namespace Application.Mappers;
 

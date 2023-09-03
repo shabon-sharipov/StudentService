@@ -1,9 +1,9 @@
-using Application.Common.interfaces;
 using Application.Requests;
 using Application.Responses;
+using Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace StudenServiceApi.Controllers;
+namespace StudentServiceApi.Controllers;
 
 [ApiController]
 [Route("[controller]")]
@@ -36,8 +36,9 @@ public class StudentController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<StudentResponseModel>> GetById(string id)
     {
-        var respose = await _studentService.Get(id, CancellationToken.None);
-        return Ok(respose);
+        return new StudentResponseModel();
+        //var respose = await _studentService.Get(id, CancellationToken.None);
+        //return Ok(respose);
     }
 
     [HttpPut]
