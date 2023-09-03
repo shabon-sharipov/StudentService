@@ -18,14 +18,6 @@ builder.Services.AddCors();
 builder.Host.AddSerilog();
 
 var app = builder.Build();
-var configuration = new ConfigurationBuilder()
-  .AddJsonFile("appsettings.json")
-  .AddJsonFile($"appsettings.{app.Environment.EnvironmentName}.json")
-  .AddEnvironmentVariables()
-  .Build();
-Console.WriteLine(builder.Configuration["RabbitMQ:Url"]);
-Console.WriteLine(configuration["RabbitMQ:Url"]);
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
